@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PULSE</title>
+<style>
+:root{--bg:#e4e6eb;--mute:#5d6070;--ink:#1c1d24;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181d;--mute:#9a9db0;--ink:#ecedf4}}
+:root[data-theme="dark"]{--bg:#17181d;--mute:#9a9db0;--ink:#ecedf4}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 "Helvetica Neue",Helvetica,Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 12px}
+.ipod{width:min(340px,92vw);padding:20px 18px 26px;border-radius:30px;background:linear-gradient(155deg,#fdfdfe 0%,#dfe1e6 45%,#c3c6cc 100%);box-shadow:0 18px 40px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.8),inset 0 -3px 6px rgba(0,0,0,.15)}
+.lcd{border-radius:10px;border:3px solid #62666f;background:#f6f8fb;overflow:hidden;color:#111;box-shadow:inset 0 0 8px rgba(0,0,0,.25)}
+.bar{display:flex;align-items:center;justify-content:center;position:relative;height:26px;background:linear-gradient(#f8f8fa,#bfc3cb);border-bottom:1px solid #8c909a;font-weight:700;font-size:13px}
+.batt{position:absolute;right:8px;width:20px;height:9px;border:1px solid #444;border-radius:2px;background:linear-gradient(90deg,#3bb54a 85%,transparent 85%)}
+#rows{height:182px;overflow:hidden}
+.row{display:flex;align-items:center;gap:8px;height:26px;padding:0 10px;cursor:pointer;font-size:14px}
+.row .l{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .r{color:#6a6e78;font-variant-numeric:tabular-nums;font-size:12px}
+.row .go{width:8px;color:#6a6e78}
+.row.sel{background:linear-gradient(#5aaaff,#1767c9);color:#fff}
+.row.sel .r,.row.sel .go{color:#e6f0ff}
+.line{padding:6px 12px;overflow-wrap:anywhere}
+.line:first-child{font-weight:700;font-size:16px;padding-top:12px}
+.prompt{padding:14px 12px 4px;color:#555}
+.typed{padding:4px 12px;font-size:18px;font-weight:700;overflow-wrap:anywhere}
+.wheel{position:relative;width:74%;aspect-ratio:1;margin:24px auto 0;border-radius:50%;background:radial-gradient(circle at 32% 25%,#ffffff,#e7e8ec 70%,#cfd1d7);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18),0 2px 5px rgba(0,0,0,.25);touch-action:none;user-select:none;-webkit-user-select:none}
+.wb{position:absolute;border:0;background:none;color:#8a8d97;font:700 12px Helvetica,Arial,sans-serif;cursor:pointer;padding:10px}
+.wb.t{top:6%;left:50%;transform:translateX(-50%)}
+.wb.b{bottom:6%;left:50%;transform:translateX(-50%)}
+.wb.l{left:5%;top:50%;transform:translateY(-50%)}
+.wb.r{right:5%;top:50%;transform:translateY(-50%)}
+.mid{position:absolute;inset:32%;border-radius:50%;border:1px solid rgba(0,0,0,.25);background:radial-gradient(circle at 35% 30%,#fafafb,#d9dbe0);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid #1767c9;outline-offset:2px}
+.state{position:absolute;left:8px;font-size:10px;color:#1767c9}
+.np{display:flex;gap:10px;padding:12px 10px 6px;align-items:center}
+.art{width:78px;height:78px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);font:700 38px Georgia,serif;box-shadow:0 2px 5px rgba(0,0,0,.35)}
+.meta{display:flex;flex-direction:column;min-width:0}
+.meta b{font-size:14px;overflow-wrap:anywhere}
+.meta span{color:#555;font-size:13px}
+.meta small{color:#777;margin-top:4px}
+.prog{height:8px;margin:8px 10px 2px;border-radius:4px;background:#d3d6dd;box-shadow:inset 0 1px 2px rgba(0,0,0,.3);overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(#5aaaff,#1767c9)}
+.times{display:flex;justify-content:space-between;padding:0 10px;font-size:11px;color:#555;font-variant-numeric:tabular-nums}
+.ipod.black{background:linear-gradient(155deg,#4a4c52,#26272b 50%,#141417)}
+.ipod.black .wheel{background:radial-gradient(circle at 32% 25%,#4b4d54,#2a2b30 70%,#1b1c20)}
+.ipod.black .wb{color:#c9ccd6}
+.ipod.black .mid{background:radial-gradient(circle at 35% 30%,#5a5c64,#2e2f34)}
+.ipod.red{background:linear-gradient(155deg,#ff7a7a,#d42a2a 50%,#a31616)}
+.ipod.blue{background:linear-gradient(155deg,#9ccfff,#3a82d6 50%,#265fa6)}
+.entry{margin-top:14px}
+.entry input{width:min(340px,92vw);padding:10px 12px;border-radius:10px;border:1px solid #9a9db0;font:inherit;background:#fff;color:#111}
+.hint{max-width:340px;margin:16px 0 0;color:var(--mute);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<div class="ipod">
+<div class="lcd"><div class="bar"><span class="state" id="state"></span><span id="title"></span><span class="batt"></span></div><div id="rows"></div></div>
+<div class="wheel" id="wheel">
+<button class="wb t" id="bMenu" aria-label="Menu">MENU</button>
+<button class="wb l" id="bPrev" aria-label="Previous song">&#9664;&#9664;</button>
+<button class="wb r" id="bNext" aria-label="Next song">&#9654;&#9654;</button>
+<button class="wb b" id="bPlay" aria-label="Now playing">&#9654;&#10074;&#10074;</button>
+<button class="mid" id="bSel" aria-label="Select"></button>
+</div>
+</div>
+<div class="entry" id="entryBox" hidden><input id="entry" autocomplete="off"></div>
+<p class="hint">Drag around the wheel or press the arrow keys to scroll. Center selects, MENU goes back. The side buttons play the previous and next song in the queue, and the bottom button pauses or resumes. Settings changes the body color and the click sound.</p>
+
+<script>
+const rawSongs=[[101,"Blinding Lights","The Weeknd",200],[102,"Shape of You","Ed Sheeran",233],[103,"Bohemian Rhapsody","Queen",354],[104,"Levitating","Dua Lipa",203],[105,"Stay","The Kid LAROI",141],[106,"Believer","Imagine Dragons",204],[107,"Someone Like You","Adele",285],[108,"Uptown Funk","Mark Ronson",270],[109,"Bad Guy","Billie Eilish",194],[110,"Rolling in the Deep","Adele",228],[111,"Smells Like Teen Spirit","Nirvana",301],[112,"Billie Jean","Michael Jackson",294],[113,"Hotel California","Eagles",390],[114,"Sweet Child O' Mine","Guns N' Roses",356],[115,"Hey Jude","The Beatles",431],[116,"Imagine","John Lennon",183],[117,"Wonderwall","Oasis",258],[118,"Thriller","Michael Jackson",357],[119,"Stairway to Heaven","Led Zeppelin",482],[120,"Like a Rolling Stone","Bob Dylan",369]];
+const songById=new Map(rawSongs.map(r=>[r[0],{id:r[0],title:r[1],artist:r[2],duration:r[3]}]));
+const pick=id=>songById.get(id);
+const fmt=s=>Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+class BSTNode{constructor(song){this.song=song;this.left=null;this.right=null}}
+class SongBST{
+constructor(){this.root=null}
+insert(song){this.root=this.add(this.root,song)}
+add(node,song){
+if(!node)return new BSTNode(song);
+if(song.title<node.song.title)node.left=this.add(node.left,song);
+else node.right=this.add(node.right,song);
+return node}
+inorder(node=this.root,out=[]){
+if(!node)return out;
+this.inorder(node.left,out);out.push(node.song);this.inorder(node.right,out);
+return out}}
+
+class SongHashMap{
+constructor(){this.size=100;this.table=new Array(this.size).fill(null)}
+hash(key){return key%this.size}
+insert(key,value){
+const i=this.hash(key);
+this.table[i]={key,value,next:this.table[i]}}
+find(key){
+let node=this.table[this.hash(key)];
+while(node){if(node.key===key)return node.value;node=node.next}
+return null}}
+
+class PlaylistNode{constructor(song){this.song=song;this.next=null;this.prev=null}}
+class Playlist{
+constructor(name){this.name=name;this.head=null;this.tail=null;this.totalSongs=0}
+add(song){
+const node=new PlaylistNode(song);
+if(!this.head){this.head=node;this.tail=node}
+else{this.tail.next=node;node.prev=this.tail;this.tail=node}
+this.totalSongs++}
+toArray(){const out=[];for(let n=this.head;n;n=n.next)out.push(n.song);return out}}
+
+class PlaybackEngine{
+constructor(){this.queueFront=null;this.queueRear=null;this.stackTop=null;this.currentSong=null;this.isPlaying=false;this.backups=[]}
+addToQueue(song){
+const node={song,next:null};
+if(!this.queueFront){this.queueFront=node;this.queueRear=node}
+else{this.queueRear.next=node;this.queueRear=node}}
+playNext(){
+if(!this.queueFront)return "The queue is empty! No song to play next.";
+if(this.isPlaying)this.stackTop={song:this.currentSong,next:this.stackTop};
+const front=this.queueFront;
+this.currentSong=front.song;
+this.queueFront=front.next;
+if(!this.queueFront)this.queueRear=null;
+this.isPlaying=true;
+return "Playing now"}
+playPrevious(){
+if(!this.stackTop)return "No history available! Cannot go back.";
+if(this.isPlaying){
+const node={song:this.currentSong,next:this.queueFront};
+this.queueFront=node;
+if(!this.queueRear)this.queueRear=node}
+const top=this.stackTop;
+this.currentSong=top.song;
+this.stackTop=top.next;
+return "Replaying"}
+list(head){const out=[];for(let n=head;n;n=n.next)out.push(n.song);return out}
+clearQueueAndBackup(){
+if(!this.queueFront)return "";
+const saved=this.list(this.queueFront);
+let note="";
+if(this.backups.length<10)this.backups.push(saved);
+else note="Backup history is full! ";
+this.queueFront=null;this.queueRear=null;
+return note}
+restorePreviousQueue(){
+if(!this.backups.length)return "No previous queue to restore!";
+this.queueFront=null;this.queueRear=null;
+const saved=this.backups.pop();
+saved.forEach(s=>this.addToQueue(s));
+return "Restored previous queue ("+saved.length+" songs)!"}}
+
+class SmartShuffle{
+constructor(capacity){this.capacity=capacity;this.heap=[]}
+swap(a,b){[this.heap[a],this.heap[b]]=[this.heap[b],this.heap[a]]}
+bubbleUp(index){
+while(index>0){
+const parent=Math.floor((index-1)/2);
+if(this.heap[index].score<this.heap[parent].score){this.swap(index,parent);index=parent}
+else break}}
+bubbleDown(index){
+let smallest=index;
+const left=2*index+1,right=2*index+2;
+if(left<this.heap.length&&this.heap[left].score<this.heap[smallest].score)smallest=left;
+if(right<this.heap.length&&this.heap[right].score<this.heap[smallest].score)smallest=right;
+if(smallest!==index){this.swap(index,smallest);this.bubbleDown(smallest)}}
+insert(song,score){
+if(this.heap.length===this.capacity)return;
+this.heap.push({song,score});
+this.bubbleUp(this.heap.length-1)}
+playNextShuffled(){
+if(!this.heap.length)return null;
+const top=this.heap[0].song;
+this.heap[0].score+=10;
+this.bubbleDown(0);
+return top}}
+
+class SearchSort{
+constructor(capacity){this.capacity=capacity;this.songArray=[]}
+add(song){if(this.songArray.length<this.capacity)this.songArray.push(song)}
+partition(arr,low,high){
+const pivot=arr[high].title;
+let i=low-1;
+for(let j=low;j<high;j++){
+if(arr[j].title<pivot){i++;[arr[i],arr[j]]=[arr[j],arr[i]]}}
+[arr[i+1],arr[high]]=[arr[high],arr[i+1]];
+return i+1}
+quickSort(arr,low,high){
+if(low<high){
+const pi=this.partition(arr,low,high);
+this.quickSort(arr,low,pi-1);
+this.quickSort(arr,pi+1,high)}}
+sort(){this.quickSort(this.songArray,0,this.songArray.length-1)}
+binarySearch(target){
+let left=0,right=this.songArray.length-1;
+while(left<=right){
+const mid=left+Math.floor((right-left)/2);
+const title=this.songArray[mid].title;
+if(title===target)return mid;
+if(title<target)left=mid+1;else right=mid-1}
+return -1}}
+
+const tree=new SongBST(),hashMap=new SongHashMap();
+rawSongs.forEach(r=>{const s=pick(r[0]);tree.insert(s);hashMap.insert(s.id,s)});
+const playlists=[];
+function createPlaylist(name,ids){
+if(playlists.length>=10)return;
+const list=new Playlist(name);
+ids.forEach(id=>list.add(pick(id)));
+playlists.push(list)}
+createPlaylist("My Favorites",[101,104,106,111,115,117]);
+createPlaylist("Workout Mix",[102,108,112,118]);
+createPlaylist("Chill Vibes",[107,110,116,120]);
+const engine=new PlaybackEngine();
+[102,105,109,112,113,114,119,103,101,108].forEach(id=>engine.addToQueue(pick(id)));
+const shuffler=new SmartShuffle(20);
+[[103,1],[105,2],[112,3],[109,4],[102,5],[111,6],[108,7],[104,8],[106,9],[114,10],[110,11],[107,12],[116,13],[113,14],[101,15],[117,16],[120,17],[118,18],[115,19],[119,20]].forEach(p=>shuffler.insert(pick(p[0]),p[1]));
+const sorter=new SearchSort(20);
+[118,101,116,108,103,112,107,115,105,102,104,106,109,110,111,113,114,117,119,120].forEach(id=>sorter.add(pick(id)));
+
+let nowSong=null,lastMsg="",elapsed=0,paused=false;
+const stack=[];
+const VISIBLE=7;
+const current=()=>stack[stack.length-1];
+const textScreen=(title,lines)=>()=>({title,lines});
+const detailScreen=song=>()=>({title:"Song",lines:[song.title,song.artist,"ID "+song.id,"Duration "+song.duration+"s ("+fmt(song.duration)+")"]});
+const songsScreen=(title,getList)=>()=>{
+const list=getList();
+if(!list.length)return {title,lines:["Nothing here yet."]};
+return {title,items:list.map(s=>({l:s.title,r:fmt(s.duration),go:()=>push(detailScreen(s))}))}};
+
+function nowScreen(){return {title:"Now Playing",now:true}}
+const artColors=id=>{const h=(id*47)%360;return "linear-gradient(135deg,hsl("+h+",75%,62%),hsl("+((h+60)%360)+",70%,38%))"};
+function nowHtml(){
+if(!nowSong)return '<div class="line">Nothing playing</div>'+(lastMsg?'<div class="line">'+esc(lastMsg)+'</div>':'')+'<div class="line">Pick a song from Playback or Smart Shuffle.</div>';
+const pct=Math.min(100,elapsed/nowSong.duration*100);
+return '<div class="np"><div class="art" style="background:'+artColors(nowSong.id)+'"><span>'+esc(nowSong.title.charAt(0))+'</span></div><div class="meta"><b>'+esc(nowSong.title)+'</b><span>'+esc(nowSong.artist)+'</span><small>'+esc(lastMsg)+'</small></div></div><div class="prog"><i style="width:'+pct+'%"></i></div><div class="times"><span>'+fmt(elapsed)+'</span><span>-'+fmt(nowSong.duration-elapsed)+'</span></div>'}
+function advance(){
+const m=engine.playNext();
+if(m==="Playing now"){nowSong=engine.currentSong;elapsed=0;paused=false;lastMsg="Up next from the queue"}
+else{paused=true;lastMsg="End of queue"}
+render()}
+function showNow(msg,song){
+lastMsg=msg;
+if(song){nowSong=song;elapsed=0;paused=false}
+if(current().build===nowScreen)render();else push(nowScreen)}
+function playNext(){const m=engine.playNext();showNow(m,m==="Playing now"?engine.currentSong:null)}
+function playPrevious(){const m=engine.playPrevious();showNow(m,m==="Replaying"?engine.currentSong:null)}
+function shuffleNext(){const song=shuffler.playNextShuffled();showNow(song?"Smart shuffle":"Heap is empty.",song)}
+
+function mainScreen(){return {title:"PULSE",items:[
+{l:"Song Catalog",go:()=>push(catalogScreen)},
+{l:"Playlists",go:()=>push(playlistsScreen)},
+{l:"Playback Engine",go:()=>push(playbackScreen)},
+{l:"Smart Shuffle",go:()=>push(shuffleScreen)},
+{l:"Search and Sort",go:()=>push(searchScreen)},
+{l:"Settings",go:()=>push(settingsScreen)},
+{l:"Now Playing",go:()=>push(nowScreen)}]}}
+function catalogScreen(){return {title:"Song Catalog",items:[
+{l:"All songs (A-Z)",go:()=>push(songsScreen("A-Z",()=>tree.inorder()))},
+{l:"Search by ID",go:()=>push(idEntryScreen)}]}}
+function idEntryScreen(){return {title:"Search by ID",entry:{prompt:"Enter song ID",type:"number",submit:v=>{
+const id=parseInt(v,10);
+const found=hashMap.find(id);
+push(found?detailScreen(found):textScreen("Not found",["Song with ID "+(isNaN(id)?"(blank)":id)+" not found."]))}}}}
+function playlistsScreen(){return {title:"Playlists",items:playlists.map(p=>({l:p.name,r:p.totalSongs+" songs",go:()=>push(playlistScreen(p))}))}}
+const playlistScreen=p=>()=>({title:p.name,items:[
+{l:"Send to queue",r:p.totalSongs+" songs",go:()=>{
+const songs=p.toArray();
+let msg="Playlist is empty or was not found.";
+if(songs.length){
+const note=engine.clearQueueAndBackup();
+songs.forEach(s=>engine.addToQueue(s));
+msg=note+songs.length+" songs from the playlist have been added to the Queue!"}
+push(textScreen("Queue",[msg]))}},
+...p.toArray().map(s=>({l:s.title,r:fmt(s.duration),go:()=>push(detailScreen(s))}))]});
+function playbackScreen(){return {title:"Playback",items:[
+{l:"Play next song",go:playNext},
+{l:"Play previous song",go:playPrevious},
+{l:"Up next",r:String(engine.list(engine.queueFront).length),go:()=>push(songsScreen("Up Next",()=>engine.list(engine.queueFront)))},
+{l:"History",r:String(engine.list(engine.stackTop).length),go:()=>push(songsScreen("History",()=>engine.list(engine.stackTop)))},
+{l:"Restore previous queue",go:()=>push(textScreen("Queue",[engine.restorePreviousQueue()]))}]}}
+function shuffleScreen(){return {title:"Smart Shuffle",items:[
+{l:"Play next shuffled song",go:shuffleNext},
+{l:"View heap",go:()=>push(heapScreen)}]}}
+function heapScreen(){return {title:"Heap (lowest first)",items:shuffler.heap.map(h=>({l:h.song.title,r:"score "+h.score,go:()=>push(detailScreen(h.song))}))}}
+function searchScreen(){return {title:"Search and Sort",items:[
+{l:"Sort alphabetically",go:()=>{sorter.sort();push(songsScreen("Sorted A-Z",()=>sorter.songArray))}},
+{l:"Search by title",go:()=>push(titleEntryScreen)},
+{l:"Browse array",go:()=>push(songsScreen("Array",()=>sorter.songArray))}]}}
+function titleEntryScreen(){return {title:"Search by title",entry:{prompt:"Enter exact song title",type:"text",submit:v=>{
+const title=v.trim();
+sorter.sort();
+const index=sorter.binarySearch(title);
+push(index!==-1?textScreen("Found",["Found at index "+index,sorter.songArray[index].title,sorter.songArray[index].artist]):textScreen("Not found",["Song \u201C"+title+"\u201D not found."]))}}}}
+
+const bodyColors=["Silver","Black","Red","Blue"];
+let bodyIndex=0,clickOn=true,audioCtx=null;
+function settingsScreen(){return {title:"Settings",items:[
+{l:"Body color",r:bodyColors[bodyIndex],go:()=>{bodyIndex=(bodyIndex+1)%bodyColors.length;document.querySelector(".ipod").className="ipod "+bodyColors[bodyIndex].toLowerCase();render()}},
+{l:"Click sound",r:clickOn?"On":"Off",go:()=>{clickOn=!clickOn;render()}}]}}
+function tickSound(){
+if(!clickOn)return;
+try{
+audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+osc.frequency.value=1800;gain.gain.value=0.04;
+osc.connect(gain);gain.connect(audioCtx.destination);
+osc.start();osc.stop(audioCtx.currentTime+0.012)
+}catch(e){}}
+const entryBox=$("entryBox"),entryInput=$("entry");
+function render(){
+const top=current(),scr=top.build();
+top.items=scr.items||[];
+$("title").textContent=scr.title;
+$("state").textContent=nowSong?(paused?"\u275A\u275A":"\u25B6"):"";
+const rows=$("rows");
+entryBox.hidden=!scr.entry;
+if(!scr.entry&&document.activeElement===entryInput)entryInput.blur();
+if(scr.entry){
+entryInput.type=scr.entry.type;
+rows.innerHTML='<div class="prompt">'+esc(scr.entry.prompt)+'</div><div class="typed">'+esc(entryInput.value)+'_</div>';
+return}
+if(scr.now){rows.innerHTML=nowHtml();return}
+if(scr.lines){rows.innerHTML=scr.lines.map(t=>'<div class="line">'+esc(t)+'</div>').join("");return}
+top.sel=Math.min(top.sel,top.items.length-1);
+if(top.sel<top.top)top.top=top.sel;
+if(top.sel>=top.top+VISIBLE)top.top=top.sel-VISIBLE+1;
+rows.innerHTML=top.items.slice(top.top,top.top+VISIBLE).map((it,i)=>{
+const n=top.top+i;
+return '<div class="row'+(n===top.sel?" sel":"")+'" data-n="'+n+'"><span class="l">'+esc(it.l)+'</span>'+(it.r?'<span class="r">'+esc(it.r)+'</span>':"")+'<span class="go">'+(it.go?"\u203A":"")+'</span></div>'}).join("")}
+function push(build){
+stack.push({build,sel:0,top:0,items:[]});
+const scr=build();
+if(scr.entry){entryInput.value="";render();entryInput.focus()}else render()}
+function back(){if(stack.length>1){stack.pop();render()}}
+function scroll(d){
+const top=current();
+if(!top.items.length)return;
+const next=Math.max(0,Math.min(top.items.length-1,top.sel+d));
+if(next!==top.sel)tickSound();
+top.sel=next;
+render()}
+function activate(){
+const top=current(),scr=top.build();
+if(scr.entry){scr.entry.submit(entryInput.value);return}
+const item=top.items[top.sel];
+if(item&&item.go)item.go()}
+
+$("rows").addEventListener("click",e=>{
+const row=e.target.closest(".row");
+if(!row)return;
+current().sel=parseInt(row.dataset.n,10);
+activate()});
+entryInput.addEventListener("input",render);
+
+const wheel=$("wheel");
+let dragging=false,lastAngle=0,acc=0,dragged=false,startX=0,startY=0;
+const angleOf=e=>{const r=wheel.getBoundingClientRect();return Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2))*180/Math.PI};
+wheel.addEventListener("pointerdown",e=>{dragging=true;dragged=false;lastAngle=angleOf(e);acc=0;startX=e.clientX;startY=e.clientY});
+window.addEventListener("pointermove",e=>{
+if(!dragging)return;
+const box=wheel.getBoundingClientRect();
+const dist=Math.hypot(e.clientX-(box.left+box.width/2),e.clientY-(box.top+box.height/2));
+const a=angleOf(e);
+let d=a-lastAngle;
+if(d>180)d-=360;
+if(d<-180)d+=360;
+lastAngle=a;
+if(Math.hypot(e.clientX-startX,e.clientY-startY)>8)dragged=true;
+if(!dragged||dist<box.width*0.18)return;
+acc+=d;
+while(acc>=28){scroll(1);acc-=28}
+while(acc<=-28){scroll(-1);acc+=28}});
+window.addEventListener("pointerup",()=>{dragging=false});
+const tap=(id,fn)=>$(id).addEventListener("click",()=>{if(!dragged)fn()});
+tap("bMenu",back);tap("bSel",activate);tap("bPrev",playPrevious);tap("bNext",playNext);tap("bPlay",()=>{
+if(current().build===nowScreen&&nowSong){paused=!paused;lastMsg=paused?"Paused":"Playing";render()}
+else if(current().build!==nowScreen)push(nowScreen)});
+document.querySelector(".ipod").addEventListener("wheel",e=>{e.preventDefault();scroll(e.deltaY>0?1:-1)},{passive:false});
+window.addEventListener("keydown",e=>{
+const typing=document.activeElement===entryInput;
+dragged=false;
+if(e.key==="Enter"){if(e.target.tagName!=="BUTTON")activate();return}
+if(e.key==="Escape"){back();return}
+if(typing)return;
+if(e.key==="ArrowDown"){e.preventDefault();scroll(1)}
+else if(e.key==="ArrowUp"){e.preventDefault();scroll(-1)}
+else if(e.key==="Backspace")back();
+else if(e.key==="ArrowLeft")playPrevious();
+else if(e.key==="ArrowRight")playNext()});
+
+setInterval(()=>{
+if(!nowSong||paused)return;
+elapsed++;
+if(elapsed>=nowSong.duration)advance();
+else if(current().build===nowScreen)render()},1000);
+push(mainScreen);
+</script>
+</body>
+</html>
